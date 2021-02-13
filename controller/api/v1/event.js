@@ -143,7 +143,10 @@ module.exports.update_event = async (req, res) => {
       req.body.moderatorDetails.files = req.files.moderatorDetails;
     }
 
-    await Events.findOneAndUpdate(req.params.id, req.body);
+   let updated_doc = await Events.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+    console.log(updated_doc, "updated");
 
     return res.status(200).json({ message: "updated" });
   } catch (err) {
