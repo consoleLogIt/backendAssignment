@@ -1,11 +1,22 @@
 const unStructureData = require("../../../model/unstructuredData");
 const Events = require("../../../model/event");
 var mongoose = require("mongoose");
+
 //create_event
 module.exports.create_event = async (req, res) => {
   console.log(req.body);
 
+  const { aboutTheEvent } = req.body;
+
   try {
+    if (aboutTheEvent) {
+      let doc = await unStructureData.create({
+        data: aboutTheEvent.data,
+        files: req.files && req.files.aboutTheEvent,
+      });
+      req.body.aboutTheEvent = doc._id;
+    }
+
     const event = await Events.create(req.body);
 
     return res.json(200, {
@@ -50,32 +61,27 @@ module.exports.get_event = async (req, res) => {
       "readingMaterialsResource joiningInfo aboutTheEvent"
     );
 
-    if(!event){
-      return res.status(404).json({message:"not found"})
+    if (!event) {
+      return res.status(404).json({ message: "not found" });
     }
+
+    console.log(event, "event");
 
     return res.status(200).json({ message: "event details", event });
   } catch (err) {
     console.log(err, "error");
 
-    return res.status(500).json({message:"internal server error"})
+    return res.status(500).json({ message: "internal server error" });
   }
 };
 
-
-
-
-
 //event_update
 module.exports.update_event = async (req, res) => {
-
-
   try {
     let event_doc = await Events.findById(req.params.id);
 
     const { aboutTheEvent, readingMaterialsResource, joiningInfo } = req.body;
 
-    
     if (joiningInfo || (req.files && req.files.joiningInfo)) {
       let joiningInfo_doc = await unStructureData.findOneAndUpdate(
         event_doc.joiningInfo
@@ -91,16 +97,15 @@ module.exports.update_event = async (req, res) => {
       req.body.joiningInfo = joiningInfo_doc._id;
     }
 
-
-
     if (
       readingMaterialsResource ||
       (req.files && req.files.readingMaterialsResource)
     ) {
+      console.log("readingMaterialsResource", mongoose.Types.ObjectId());
       let readingMaterialsResource_doc = await unStructureData.findOneAndUpdate(
         event_doc.readingMaterialsResource
           ? { _id: event_doc.readingMaterialsResource }
-          : { _id: new mongoose.Types.ObjectId() },
+          : { _id: mongoose.Types.ObjectId() },
         {
           data:
             readingMaterialsResource && req.body.readingMaterialsResource.data,
@@ -111,8 +116,6 @@ module.exports.update_event = async (req, res) => {
 
       req.body.readingMaterialsResource = readingMaterialsResource_doc._id;
     }
-
-
 
     if (aboutTheEvent || (req.files && req.files.aboutTheEvent)) {
       let aboutTheEvent_doc = await unStructureData.findOneAndUpdate(
@@ -126,10 +129,9 @@ module.exports.update_event = async (req, res) => {
         { upsert: true, new: true }
       );
 
-      event_doc.aboutTheEvent = aboutTheEvent_doc._id;
+      req.body.aboutTheEvent = aboutTheEvent_doc._id;
+      console.log(req.body, "body");
     }
-
-
 
     if (req.files && req.files.speakersDetails) {
       if (!req.body.speakersDetails) req.body.speakersDetails = {};
@@ -143,7 +145,12 @@ module.exports.update_event = async (req, res) => {
       req.body.moderatorDetails.files = req.files.moderatorDetails;
     }
 
-    await Events.findOneAndUpdate(req.params.id, req.body);
+    console.log(req.body, "before updatew eevent");
+
+    let updated_doc = await Events.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+    console.log(updated_doc, "updated");
 
     return res.status(200).json({ message: "updated" });
   } catch (err) {

@@ -36,6 +36,7 @@ const eventSchema = new mongoose.Schema({
   aboutTheEvent: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "UnStructuredData",
+    required:true
   },
 
   readingMaterialsResource: {
