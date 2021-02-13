@@ -2,6 +2,8 @@ const express = require("express");
 const multer = require("multer");
 const router = express.Router();
 
+
+
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
     callback(null, "./uploads");
@@ -33,5 +35,7 @@ router.put(
   ]),
   event_controller.update_event
 );
+
+
 
 module.exports = router;

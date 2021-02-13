@@ -11,7 +11,7 @@ const app = express();
 app.use(express.urlencoded());
 
 app.use(bodyParser.json());
-app.use("/", require("./routes/api/v1"));
+app.use("/", require("./routes"));
 
 app.listen(port, () => {
   console.log(`server has started on port ${port}`);
